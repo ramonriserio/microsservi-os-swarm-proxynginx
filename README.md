@@ -1,7 +1,25 @@
 # Implementação de Microsserviços com Docker Swarm, MySQL e Load Balancer com proxy Nginx
+Criação de uma infraestrutura de microsserviços utilizando Docker Swarm, MySQL e um balanceador de carga com proxy Nginx.  
+Aqui estão os principais passos:
+
+1. Provisionamento de VMs
+2. Instalação do Docker
+3. Configuração do MySQL: Volumes são criados e um container MySQL é executado, configurado com um banco de dados específico.
+4. Conexão ao Banco de Dados: Ferramentas como MySQL Workbench são usadas para conectar e gerenciar o banco de dados.
+5. Criação de Tabelas: Uma tabela chamada dados é criada no banco de dados.
+6. Instalação do Webserver: Um container Apache com PHP é configurado para servir a aplicação web.
+7. Teste da Aplicação: A aplicação é acessada via navegador para verificar seu funcionamento.
+8. Estresse do Container: Ferramentas como Loader.io são usadas para testar a capacidade de resposta do container.
+9. Criação do Docker Swarm: Um cluster Docker Swarm é inicializado, com um nó mestre e nós trabalhadores.
+10. Replicação do Webserver: Réplicas do webserver são criadas para garantir alta disponibilidade.
+11. Montagem de Volumes: Volumes são montados no cluster para compartilhamento de dados entre containers.
+12. Estresse do Container: Novamente, Loader.io é utilizado para testar a escalabilidade da aplicação.
+
+A seguir o passo a passo detalhado.
 
 01- PROVISIONAR 3 VMs AWS EC2 free tier (t2.micro/ubuntu)
 ---------------------------------------------------------
+Três instâncias EC2 na AWS são configuradas com Ubuntu, liberando portas essenciais no Security Group.  
 ![image](https://github.com/user-attachments/assets/2a00134a-8b0b-4613-8725-098d43fb1916)
 
 A fim de que todo o processo funcione é preciso liberar as seguintes portas no Secury Group através de suas inbound rules:
@@ -16,6 +34,7 @@ A fim de que todo o processo funcione é preciso liberar as seguintes portas no 
 
 02- INSTALAR DOCKER NAS 3 VMs EC2
 ---------------------------------
+Docker é instalado nas três VMs para permitir a execução de containers.  
 ~~~
 curl -fsSL https://get.docker.com -o get-docker.sh  
 sudo sh ./get-docker.sh  
@@ -24,6 +43,7 @@ chmod 666 /var/run/docker.sock
 
 03- CRIAR VOLUMES APP e DATA, E EXECUTAR CONTAINER MYSQL
 --------------------------------------------------------
+Volumes são criados e um container MySQL é executado, configurado com um banco de dados específico.  
 ~~~
 docker volume create app  
 volume create data  
@@ -31,12 +51,13 @@ docker run -e MYSQL_ROOT_PASSWORD=Senha123 -e MYSQL_DATABASE=meubanco --name mys
 ~~~
 04- CONECTAR AO BD meubanco
 ---------------------------
-Você pode usar, por exemplo o MySQL Workbench. 
+Ferramentas como MySQL Workbench são usadas para conectar e gerenciar o banco de dados.  
 
 ![image](https://github.com/user-attachments/assets/68840bb0-83e4-4f97-8186-226d47e5fc59)
 
 05- CRIAR TABELA dados
 ----------------------
+Uma tabela chamada dados é criada no banco de dados.  
 ~~~
 CREATE TABLE dados (  
     AlunoID int,  
@@ -51,6 +72,7 @@ CREATE TABLE dados (
 
 06- INSTALAR CONTAINER WEBSERVER APACHE COM PHP
 -----------------------------------------------
+Um container Apache com PHP é configurado para servir a aplicação web.  
 ~~~
 docker run --name web-server -dt -p 80:80 --mount type=volume,src=app,dst=/app/ webdevops/php-apache:alpine-php7
 ~~~
@@ -58,10 +80,12 @@ docker run --name web-server -dt -p 80:80 --mount type=volume,src=app,dst=/app/ 
 
 07- TESTAR A APLICAÇÃO
 ----------------------
+A aplicação é acessada via navegador para verificar seu funcionamento.  
 Acesse o browser com o endereço: `http://<PUBLIC IP>`
 
 08- EXTRESSAR O CONTAINER
 -------------------------
+Ferramentas como loader.io são usadas para testar a capacidade de resposta do container.  
 8.1- Acesse `https://loader.io`  
 8.2- Defina o Target host  
 8.3- Faça a Target verification  
@@ -71,6 +95,7 @@ Acesse o browser com o endereço: `http://<PUBLIC IP>`
 
 09- CRIAR SWARM DOCKER
 ----------------------
+Um cluster Docker Swarm é inicializado, com um nó mestre e nós worker.  
 9.1- NO MASTER: `docker swarm init`
 ![image](https://github.com/user-attachments/assets/cd740f2e-bce8-41fb-addd-ab3f4f0cec23)
 
@@ -79,6 +104,7 @@ Acesse o browser com o endereço: `http://<PUBLIC IP>`
 
 10- CRIAR RÉPLICAS DO WEBSERVER APACHE COM PHP
 ----------------------------------------------
+Réplicas do webserver são criadas para garantir alta disponibilidade.  
 NO MASTER:  
 ~~~
 docker service create --name web-server --replicas 10 -dt -p 80:80 --mount type=volume,src=app,dst=/app/ webdevops/php-apache:alpine-php7
@@ -87,6 +113,7 @@ docker service create --name web-server --replicas 10 -dt -p 80:80 --mount type=
 
 11- MONTAR O VOLUME NO CLUSTER
 ------------------------------
+Volumes são montados no cluster para compartilhamento de dados entre containers.  
 11.1- NO MASTER:   `apt-get install nfs-server`
 ![image](https://github.com/user-attachments/assets/f82c7cd4-2558-4223-8990-28a963c3d0ce)
 
@@ -106,6 +133,7 @@ showmount -e
 
 12- EXTRESSAR O CONTAINER
 -------------------------
+Novamente, Loader.io é utilizado para testar a escalabilidade da aplicação.  
 12.1- Acesse `https://loader.io`
 12.2- Defina o Target host
 12.3- Faça a Target verification
